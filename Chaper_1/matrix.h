@@ -29,7 +29,7 @@ public:
         return os;
     }
 
-private:
+protected:
     std::vector<std::vector<T>> elements;
     size_t columns, rows;
 };
