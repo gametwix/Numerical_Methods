@@ -9,11 +9,14 @@ class Matrix{
 public:
     Matrix():columns(0),rows(0){};
     Matrix(const size_t row_size,const size_t col_size);
+    Matrix(std::initializer_list<std::initializer_list<double>> elems);
+
     T operator()(const size_t row,const size_t col) const;
     T& operator()(const size_t row,const size_t col);
     Matrix operator+(const Matrix<T> &second_mat);
     Matrix operator-(const Matrix<T> &second_mat);
     Matrix operator*(const Matrix<T> &second_mat);
+    void operator=(const Matrix<T> &second_mat);
     size_t get_col() const {return columns;}
     size_t get_row() const {return rows;}
 
@@ -76,6 +79,18 @@ Matrix<T> Matrix<T>::operator+(const Matrix<T> &second_mat){
 }
 
 template <class T>
+void Matrix<T>::operator=(const Matrix<T> &second_mat){
+    elements = std::vector<std::vector<T>>(second_mat.get_row(),std::vector<T>(second_mat.get_col()));
+    rows = second_mat.get_row();
+    columns = second_mat.get_col();
+    for(int i = 0; i < rows; ++i){
+        for(int j = 0; j < columns; ++j){
+            elements[i][j] = second_mat(i, j);
+        }
+    }
+}
+
+template <class T>
 Matrix<T> Matrix<T>::operator-(const Matrix<T> &second_mat){
     if(columns != second_mat.get_col() || rows != second_mat.get_row()){
         throw std::invalid_argument("different sizes of matrices");
@@ -115,13 +130,37 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T> &second_mat){
     return answer;
 }
 
+template <class T>
+Matrix<T>::Matrix(std::initializer_list<std::initializer_list<double>> elems){
+    elements.resize(elems.size());
+    size_t i = 0;
+    size_t j = 0;
+    for(auto list:elems){
+        j = 0;
+        elements[i].resize(list.size());
+        for(auto elem: list){
+            elements[i][j] = elem;
+            j++;
+        }
+        i++;
+    }
+    rows = i;
+    columns = j;
+}
+
 
 
 template <class T>
-class Vector: public Matrix<T>{
+class Vector: public Matrix<double>{
 public:
     Vector(const size_t inp_size): size(inp_size),Matrix<T>::Matrix(inp_size,1){}
-
+    Vector(std::initializer_list<T> list):Vector(list.size()){
+    size_t i = 0;
+    for(auto elem:list){
+        elements[i][0] = elem;
+        i++;
+    }
+}
     Vector():size(0){}
 
     size_t get_size() const{return size;}
@@ -134,7 +173,18 @@ public:
         return Matrix<T>::operator()(num,0);
     }
 
+    void operator=(const Matrix<T> &second_mat){
+        if(second_mat.get_col() > 1){
+            throw std::invalid_argument("different sizes of matrices");
+        }
+        elements = std::vector<std::vector<T>>(second_mat.get_row(),std::vector<T>(1));
+        rows = second_mat.get_row();
+        size = second_mat.get_row();
+        columns = second_mat.get_col();
+        for(int i = 0; i < rows; ++i){
+            elements[i][0] = second_mat(i, 0);
+        }
+    }
 private:
     size_t size;
 };
-

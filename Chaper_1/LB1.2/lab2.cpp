@@ -1,60 +1,53 @@
 #include <iostream>
 #include <vector>
+#include "../matrix.h"
 
-double Tridioiganal_req(std::vector<std::vector<double>> &matrix,std::vector<double> &r,std::vector<double> &x, int step,double prev_p,double prev_q){
-    if(step == r.size()){
+template<class T>
+double Tridioiganal_req(Matrix<T> &matrix,Vector<T> &vec,Vector<T> &sol, int step,double prev_p,double prev_q){
+    if(step == vec.get_size()){
         return 0;
     }
     double a,b,c,d;
     if(step == 0){
         a = 0;
-        b = matrix[0][0];
-        c = matrix[0][1];
-        d = r[0];
-    }else if(step == (r.size() - 1)){
-        a = matrix[step][step - 1];
-        b = matrix[step][step];
+        b = matrix(0, 0);
+        c = matrix(0, 1);
+        d = vec(0);
+    }else if(step == (vec.get_size() - 1)){
+        a = matrix(step, step - 1);
+        b = matrix(step, step);
         c = 0;
-        d = r[step];
+        d = vec(step);
     }else{
-        a = matrix[step][step - 1];
-        b = matrix[step][step]; 
-        c = matrix[step][step + 1];
-        d = r[step];
+        a = matrix(step, step - 1);
+        b = matrix(step, step); 
+        c = matrix(step, step + 1);
+        d = vec(step);
     }
     double p = ((-1.0)*c)/(b + a*prev_p);
     double q = (d - a*prev_q)/(b+a*prev_p);
-    x[step] = p*Tridioiganal_req(matrix,r,x,step+1,p,q) + q;
-    return x[step];
+    sol(step) = p*Tridioiganal_req(matrix,vec,sol,step+1,p,q) + q;
+    return sol(step);
 }
 
-std::vector<double> Tridioiganal(std::vector<std::vector<double>> &matrix,std::vector<double> &b){
-    std::vector<double> x(b.size());
+template<class T>
+Vector<T> Tridioiganal(Matrix<T> &matrix,Vector<T> &b){
+    Vector<T> x(b.get_size());
     Tridioiganal_req(matrix,b,x,0,0,0);
     return x;
 }
 
 int main(){
-    std::vector<std::vector<double>> matrix = {{-1,-1,0,0,0},{1,-8,1,0,0},{0,-2,-11,5,0},{0,0,3,-14,7},{0,0,0,8,10}};
-    std::vector<double> b = {-114,81,-8,-38,114};
-    std::vector<double> x = Tridioiganal(matrix,b);
-    std::cout << "Matrix: " << std::endl;
-    for(int i = 0; i < matrix.size(); ++i){
-        for(int j = 0; j < matrix[i].size(); ++j){
-            std::cout << matrix[i][j] << "\t" ;
-        }
-        std::cout << std::endl;
-    }
-    std::cout << "b - vector: " << std::endl;
-    for(int i = 0; i < b.size();++i){
-        std::cout << b[i] << "\t";
-    }
-    std::cout << std::endl;
-    std::cout << "Solve: " << std::endl;
-    for(int i = 0; i < x.size();++i){
-        std::cout << x[i] << "\t";
-    }
-    std::cout << std::endl;
-
+    Matrix<double> matrix = {   {-1,-1,0,0,0},
+                                {1,-8,1,0,0},
+                                {0,-2,-11,5,0},
+                                {0,0,3,-14,7},
+                                {0,0,0,8,10}};
+    
+    Vector<double> vec = {-114,81,-8,-38,114};
+    Vector<double> sol = Tridioiganal(matrix,vec);
+    std::cout << "Matrix: " << std::endl << matrix;
+    std::cout << "Vector: " << std::endl << vec;
+    std::cout << "Solve: " << std::endl << sol;
     return 0;
 }

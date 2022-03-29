@@ -3,35 +3,21 @@
 #include "square_matrix.h"
 
 int main(){
-    std::vector<std::vector<double>> A{ {-1,-3,-4,0},
-                                        {3,7,-8,3},
-                                        {1,-6,2,5},
-                                        {-8,-4,-1,-1}};
-    std::vector<double> b{-3,30,-90,12};
-    SquareMatrix matrix(4);
-    Vector<double> vec(4);
-
-    for(int i = 0; i < 4; ++i){
-        for(int j = 0; j < 4; ++j){
-            matrix(i,j) = A[i][j];
-        }
-        vec(i) = b[i];
-    }
+    SquareMatrix matrix{ {-1.0,-3.0,-4.0,0.0},
+                                        {3.0,7.0,-8.0,3.0},
+                                        {1.0,-6.0,2.0,5.0},
+                                        {-8.0,-4.0,-1.0,-1.0}};                                      
+    Vector<double> vec{-3,30,-90,12};
     matrix.find_LU();
-    std::cout << "Matrix and vector: " << std::endl;
-    std::cout << matrix;
-    std::cout << "L: " << std::endl;
-    std::cout << matrix.L;
-    std::cout << "U: " << std::endl;
-    std::cout << matrix.U;
+    
+    std::cout << "Matrix: " << matrix << "Vector: "<< std::endl << vec;
+    std::cout << "L: " << std::endl << matrix.L;
+    std::cout << "U: " << std::endl << matrix.U;
     std::cout << "Det: " << matrix.get_det() << std::endl;
     Vector<double> x = matrix.find_root(vec);
-    std::cout << "Root: "  << std::endl;
-    std::cout << x;
-    std::cout << std::endl;
-    std::cout <<"Inverse:"<< std::endl;
+    std::cout << "Root: " << std::endl << x;
     SquareMatrix bmat(matrix.get_inverse());
-    std::cout << bmat;
+    std::cout <<"Inverse:"<< std::endl << bmat;
     
     return 0;
 }

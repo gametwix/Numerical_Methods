@@ -1,12 +1,17 @@
 #pragma once
 #include "../matrix.h"
 #include <iostream>
+#include <iomanip>
 #include <vector>
 
 class SquareMatrix: public Matrix<double>{
 public:
     SquareMatrix(const size_t inp_size);
     SquareMatrix();
+    SquareMatrix(std::initializer_list<std::initializer_list<double>> elems):   Matrix(elems),
+                                                                                size(elems.size()),
+                                                                                U(elems.size(),elems.size()), 
+                                                                                L(elems.size(),elems.size()){}
 
     size_t get_size() const;
 
