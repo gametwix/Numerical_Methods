@@ -15,10 +15,12 @@ public:
     T& operator()(const size_t row,const size_t col);
     Matrix operator+(const Matrix<T> &second_mat);
     Matrix operator-(const Matrix<T> &second_mat);
+    Matrix operator*(double num);
     Matrix operator*(const Matrix<T> &second_mat);
     void operator=(const Matrix<T> &second_mat);
     size_t get_col() const {return columns;}
     size_t get_row() const {return rows;}
+    Matrix transposition() const;
 
     friend std::ostream& operator<<(std::ostream &os, const Matrix<T> &matrix){
         os << std::fixed << std::setprecision(3);
@@ -31,7 +33,7 @@ public:
         os << std::defaultfloat << std::setprecision(6);
         return os;
     }
-
+protected:
     std::vector<std::vector<T>> elements;
     size_t columns, rows;
 };
@@ -107,6 +109,17 @@ Matrix<T> Matrix<T>::operator-(const Matrix<T> &second_mat){
 }
 
 template <class T>
+Matrix<T> Matrix<T>::operator*(double num){
+    Matrix<T> answer(rows, columns);
+    for(size_t i = 0; i < rows; ++i){
+        for(size_t j = 0; j < columns; ++j){
+            answer(i,j) = elements[i][j] * num;
+        }
+    }
+    return answer;
+}
+
+template <class T>
 Matrix<T> Matrix<T>::operator*(const Matrix<T> &second_mat){
     if(columns != second_mat.get_row()){
         throw std::invalid_argument("different sizes of matrices");
@@ -146,8 +159,16 @@ Matrix<T>::Matrix(std::initializer_list<std::initializer_list<double>> elems){
     rows = i;
     columns = j;
 }
-
-
+template <class T>
+Matrix<T> Matrix<T>::transposition() const{
+    Matrix<T> new_mat(this->get_col(),this->get_row());
+    for(int i = 0; i < rows; ++i){
+        for(int j = 0; j < columns; ++j){
+            new_mat(j,i) = elements[i][j];
+        }
+    }
+    return new_mat;
+}
 
 template <class T>
 class Vector: public Matrix<T>{
