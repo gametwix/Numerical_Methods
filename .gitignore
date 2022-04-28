@@ -1,0 +1,4 @@
+lab*
+test*
+!lab*.cpp
+.vscode
