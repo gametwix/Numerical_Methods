@@ -53,11 +53,9 @@ double dphi2_2(double x1,double x2,double a, double b, double eps = 0.001){
     return (phi2(x1,x2+eps,a,b)-phi2(x1,x2,a,b))/eps;
 }
 
-double max_jphi(double x1,double x2,double a, double b,double c, double d){
-    return std::max({std::abs(dphi1_1(x1,x2,a,b)),
-                    std::abs(dphi1_2(x1,x2,a,b)),
-                    std::abs(dphi2_1(x1,x2,c,d)),
-                    std::abs(dphi2_2(x1,x2,c,d))});
+double max_jphi_sum(double x1,double x2,double a, double b,double c, double d){
+    return std::max({std::abs(dphi1_1(x1,x2,a,b))+std::abs(dphi1_2(x1,x2,a,b)),
+                    std::abs(dphi2_1(x1,x2,c,d))+std::abs(dphi2_2(x1,x2,c,d))});
 }
 
 
@@ -76,10 +74,11 @@ std::vector<double> fixed_point_iteration(double a1,double b1,double a2,double b
     double x1, x2;
     x1 = phi1(x1_0,x2_0,j1_1,j1_2);
     x2 = phi2(x1_0,x2_0,j2_1,j2_2);
-    double q = std::max({max_jphi(a1,a2,j1_1,j1_2,j2_1,j2_2),
-                        max_jphi(a1,b2,j1_1,j1_2,j2_1,j2_2),
-                        max_jphi(b1,a2,j1_1,j1_2,j2_1,j2_2),
-                        max_jphi(b1,b2,j1_1,j1_2,j2_1,j2_2)});
+    double q = std::max({max_jphi_sum(a1,a2,j1_1,j1_2,j2_1,j2_2),
+                        max_jphi_sum(a1,b2,j1_1,j1_2,j2_1,j2_2),
+                        max_jphi_sum(b1,a2,j1_1,j1_2,j2_1,j2_2),
+                        max_jphi_sum(b1,b2,j1_1,j1_2,j2_1,j2_2)});
+    std::cout <<"q=" << q << std::endl;
     while(q/(1-q)*std::max(std::abs(x1 - x1_0),std::abs(x2 - x2_0)) > eps){
         x1_0 = x1;
         x2_0 = x2;
