@@ -3,3 +3,5 @@ test*
 !lab*.cpp
 .vscode
 NM_VENV/
+*.pyc
+**/__pycache__/
