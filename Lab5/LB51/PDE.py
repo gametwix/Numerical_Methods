@@ -3,7 +3,6 @@ import scipy
 from numba import jit
 
 
-
 class PartialDifferentialEquation:
     def __init__(
         self,
@@ -15,10 +14,18 @@ class PartialDifferentialEquation:
         Ux_start_t=lambda x, a, b, c: 0,
         U_answer=lambda x, t, a, b, c: 0,
         fi=lambda x, t, a, b, c: 0,
+        alf0=1,
+        bet0=0,
+        alfn=1,
+        betn=0,
     ):
         self.a = a
         self.b = b
         self.c = c
+        self.alf0 = alf0
+        self.bet0 = bet0
+        self.alfn = alfn
+        self.betn = betn
         self._f_Ut_start_x = Ut_start_x
         self._f_Ut_finish_x = Ut_finish_x
         self._f_Ux_start_t = Ux_start_t
@@ -59,13 +66,30 @@ def Explicit_method(Equation,
 
     answer[0, :] = [Equation.Ux_start_t(elem) for elem in x]
     for k in range(resolution_t - 1):
-        answer[k + 1][0] = Equation.Ut_start_x((k+1) * tau)
-        answer[k + 1][resolution_x - 1] = Equation.Ut_finish_x((k+1) * tau)
         for i in range(1, resolution_x - 1):
             answer[k + 1][i] += ((cof_c + 1 - 2 * cof_a) * answer[k][i]
                                  + (cof_a - cof_b) * answer[k][i - 1]
                                  + (cof_a + cof_b) * answer[k][i + 1]
-                                 + Equation.fi(i * h + start_x, tau * k))
+                                 + Equation.fi(i * h + start_x, tau * (k+1)))
+        answer[k + 1][0] = (h*Equation.alf0*answer[k][0]/tau
+                            - Equation.Ut_start_x((k+1) * tau)
+                            * (2*Equation.a - Equation.b*h)
+                            - Equation.alf0*h*Equation.fi(0, (k+1) * tau))
+        answer[k + 1][0] -= -2*Equation.a*answer[k][1]*Equation.alf0/h
+        answer[k + 1][0] /= (2*Equation.a*Equation.alf0 / h
+                             + h*Equation.alf0 / tau
+                             - Equation.c * h*Equation.alf0
+                             - Equation.bet0*(2*Equation.a - Equation.b*h)
+                            )
+        answer[k + 1][resolution_x - 1] = (h*Equation.alfn*answer[k][resolution_x - 1]/tau
+                                          + Equation.Ut_finish_x((k+1) * tau)
+                                          * (2*Equation.a - Equation.b*h)
+                                          + Equation.alfn*h*Equation.fi(finish_x, (k+1) * tau))
+        answer[k + 1][resolution_x - 1] -= -2*Equation.a*Equation.alfn*answer[k][resolution_x - 2]/h
+        answer[k + 1][resolution_x - 1] /= (2*Equation.a*Equation.alfn / h
+             + h*Equation.alfn / tau
+             - Equation.c * h*Equation.alfn
+             + Equation.betn*(2*Equation.a - Equation.b*h))
     return answer
 
 
@@ -89,10 +113,28 @@ def Implicit_method(Equation,
     for k in range(resolution_t - 1):
         new_line_mat = np.zeros((resolution_x, resolution_x))
         new_line_vec = np.zeros(resolution_x)
-        new_line_mat[0][0] = 1
-        new_line_mat[resolution_x - 1][resolution_x - 1] = 1
-        new_line_vec[0] = Equation.Ut_start_x(k * tau)
-        new_line_vec[resolution_x - 1] = Equation.Ut_finish_x(k * tau)
+        new_line_mat[0][0] = (2*Equation.a*Equation.alf0 / h
+                              + h*Equation.alf0 / tau
+                              - Equation.c * h*Equation.alf0
+                              - Equation.bet0*(2*Equation.a - Equation.b*h)
+                              )
+        new_line_mat[0][1] = -2*Equation.a*Equation.alf0/h
+        
+        new_line_mat[resolution_x - 1][resolution_x - 1] = \
+            (2*Equation.a*Equation.alfn / h
+             + h*Equation.alfn / tau
+             - Equation.c * h*Equation.alfn
+             + Equation.betn*(2*Equation.a - Equation.b*h))
+        new_line_mat[resolution_x - 1][resolution_x - 2] = -2*Equation.a*Equation.alfn/h
+        
+        new_line_vec[0] = (h*Equation.alf0*answer[k+1][0]/tau
+                           - Equation.Ut_start_x((k+1) * tau)
+                           * (2*Equation.a - Equation.b*h)
+                           - Equation.alf0*h*Equation.fi(0, (k+1) * tau))
+        new_line_vec[resolution_x - 1] = (h*Equation.alfn*answer[k+1][resolution_x - 1]/tau
+                                          + Equation.Ut_finish_x((k+1) * tau)
+                                          * (2*Equation.a - Equation.b*h)
+                                          + Equation.alfn*h*Equation.fi(finish_x, (k+1) * tau))
         for i in range(1, resolution_x - 1):
             new_line_mat[i][i - 1] = cof_b - cof_a
             new_line_mat[i][i] = 2 * cof_a + cof_c + 1
@@ -101,7 +143,7 @@ def Implicit_method(Equation,
             new_line_vec[i] = answer[k][i] + Equation.fi(
                 i * h + start_x, tau * (k + 1)
             )
-        line = scipy.linalg.solve(new_line_mat, new_line_vec)
+        line = np.linalg.solve(new_line_mat, new_line_vec)
         answer[k + 1] = line
     return answer
 
@@ -132,11 +174,29 @@ def Explicit_Implicit_method(Equation,
         #  From Implicit
         new_line_mat = np.zeros((resolution_x, resolution_x))
         new_line_vec = np.zeros(resolution_x)
-        new_line_mat[0][0] = 1
-        new_line_mat[resolution_x - 1][resolution_x - 1] = 1
-        new_line_vec[0] = Equation.Ut_start_x(k * tau)
-        new_line_vec[resolution_x - 1] = Equation.Ut_finish_x(k * tau)
         
+        new_line_mat[0][0] = (2*Equation.a*Equation.alf0 / h
+                              + h*Equation.alf0 / tau
+                              - Equation.c * h*Equation.alf0
+                              - Equation.bet0*(2*Equation.a - Equation.b*h)
+                              )
+        new_line_mat[0][1] = -2*Equation.a*Equation.alf0/h
+        
+        new_line_mat[resolution_x - 1][resolution_x - 1] = \
+            (2*Equation.a*Equation.alfn / h
+             + h*Equation.alfn / tau
+             - Equation.c * h*Equation.alfn
+             + Equation.betn*(2*Equation.a - Equation.b*h))
+        new_line_mat[resolution_x - 1][resolution_x - 2] = -2*Equation.a*Equation.alfn/h
+        
+        new_line_vec[0] = (h*Equation.alf0*answer[k+1][0]/tau
+                           - Equation.Ut_start_x((k+1) * tau)
+                           * (2*Equation.a - Equation.b*h)
+                           - Equation.alf0*h*Equation.fi(0, (k+1) * tau))
+        new_line_vec[resolution_x - 1] = (h*Equation.alfn*answer[k+1][resolution_x - 1]/tau
+                                          + Equation.Ut_finish_x((k+1) * tau)
+                                          * (2*Equation.a - Equation.b*h)
+                                          + Equation.alfn*h*Equation.fi(finish_x, (k+1) * tau))
         for i in range(1, resolution_x - 1):
             #  From Implicit
             new_line_mat[i][i - 1] = cof_b_imp - cof_a_imp

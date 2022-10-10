@@ -55,8 +55,10 @@ resolution_t = 10
 
 Uxst_str = "sin(x)"
 Uans_str = "exp(-a*t)*sin(x)"
-Utsx_str = "0"
-Utfx_str = "0"
+Utsx_str = "exp(-a*t)"
+Utfx_str = "-exp(-a*t)"
+# Utsx_str = "0"
+# Utfx_str = "0"
 fi_str = "0"
 
 
