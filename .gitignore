@@ -5,3 +5,4 @@ test*
 NM_VENV/
 *.pyc
 **/__pycache__/
+ENV/

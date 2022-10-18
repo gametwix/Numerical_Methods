@@ -1,5 +1,27 @@
 import numpy as np
 
+def trid_alg(matrix,vec):
+    s = len(vec)
+    ans = np.zeros(s)
+    p = np.zeros(s)
+    q = np.zeros(s)
+    
+    p[0] = -matrix[0][1] / matrix[0][0]
+    q[0] = vec[0] / matrix[0][0]
+    
+    for i in range(1,s - 1):
+        p[i] = -matrix[i][i + 1] / (matrix[i][i] + matrix[i][i-1]*p[i-1])
+        q[i] = (vec[i] - matrix[i][i-1]*q[i-1]) / (matrix[i][i] + matrix[i][i-1]*p[i-1])
+        
+    p[s-1] = 0
+    q[s-1] = (vec[s-1] - matrix[s-1][s-2]*q[s-2]) / (matrix[s-1][s-1] + matrix[s-1][s-2]*p[s-2])
+    
+    ans[s-1] = q[s-1]
+    
+    for i in range(s - 2, -1, -1):
+        ans[i] = p[i]*ans[i+1] + q[i]
+        
+    return ans
 
 
 class PartialDifferentialEquation:
@@ -212,7 +234,7 @@ def Implicit_method(Equation,
             new_line_vec[0] -= new_line_vec[1] * k0
             new_line_vec[resolution_x - 1] -= new_line_vec[resolution_x - 2] * kn
 
-        line = np.linalg.solve(new_line_mat, new_line_vec)
+        line = trid_alg(new_line_mat, new_line_vec)
         answer[k + 1] = line
     return answer
 
@@ -321,6 +343,6 @@ def Explicit_Implicit_method(Equation,
             new_line_vec[0] -= new_line_vec[1] * k0
             new_line_vec[resolution_x - 1] -= new_line_vec[resolution_x - 2] * kn
             
-        line = np.linalg.solve(new_line_mat, new_line_vec)
+        line = trid_alg(new_line_mat, new_line_vec)
         answer[k + 1] = line
     return answer

@@ -67,7 +67,7 @@ start_x = 0
 finish_x = np.pi
 max_t = 1
 resolution_x = 30
-resolution_t = 150
+resolution_t = 200
 
 Uxst_str = "sin(x)"
 Uans_str = "exp(-a*t)*sin(x)"
