@@ -8,3 +8,4 @@ NM_VENV/
 ENV/
 .ipynb_checkpoints/
 **/.mypy_cache/
+Lab5/
