@@ -2,4 +2,10 @@ lab*
 test*
 !lab*.cpp
 .vscode
-ENV
+NM_VENV/
+*.pyc
+**/__pycache__/
+ENV/
+.ipynb_checkpoints/
+**/.mypy_cache/
+Lab5/
